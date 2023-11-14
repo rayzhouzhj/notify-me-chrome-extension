@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Notify Me!",
+  "version": "1.0.0",
+  "description": "Notify user when launch website.",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": [ "tabs" ],
+  "host_permissions": [
+    "*://*/*"
+  ],
+  "optional_host_permissions": [
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [ "warning-sign-banner.jpeg" ],
+      "matches": [ "*://*/*" ]
+    },
+    {
+      "resources": [ "settings.html" ],
+      "matches": [ "*://*/*" ]
+    }
+  ],
+  "background": {
+    "service_worker": "service_worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+        "matches": ["<all_urls>"],
+        "js": ["static/js/content.js"]
+    }
+  ]
+}
