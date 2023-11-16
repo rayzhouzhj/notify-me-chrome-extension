@@ -22,19 +22,27 @@ const TextButton = styled(Button)`
 `;
 
 function ContentScript() {
+    const defaultImageUrl = chrome.runtime.getURL('warning-sign-banner.jpeg');
+    const [bannerImageUrl, setBannerImageUrl] = useState('');
+    const [warningMessage, setWarningMessage] = useState('');
     const [open, setOpen] = useState(false);
 
     // Event listener for messages from the background script
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.action === 'ShowAlert') {
+            if (message.data.bannerImageUrl === 'warning-sign-banner.jpeg') {
+                setBannerImageUrl(defaultImageUrl);
+            } else {
+                setBannerImageUrl(message.data.bannerImageUrl);
+            }
+            
+            setWarningMessage(message.data.warningMessage);
             // Handle the message and show an alert in the content script
             setOpen(true);
         }
     });
 
     if (!open) return null;
-
-    const imageUrl = chrome.runtime.getURL('warning-sign-banner.jpeg');
 
     return (
         
@@ -59,7 +67,7 @@ function ContentScript() {
                     <CardMedia
                         component="img"
                         sx={{ height: 140 }}
-                        src={imageUrl}
+                        src={bannerImageUrl}
                         title="Danger"
                         width={345}
                     />
@@ -70,7 +78,7 @@ function ContentScript() {
                             fontWeight: 400,
                             color: "rgba(0, 0, 0, 0.6)"
                         }}>
-                            This is Production CMS!
+                            {warningMessage}
                         </Typography>
                     </CardContent>
                     <CardActions style={{

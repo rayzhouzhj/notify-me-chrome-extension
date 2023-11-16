@@ -26,3 +26,54 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         }
     }
 });
+
+// Event listener for messages from the popup script
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    if (request.action === 'GetWarningStatus') {
+        const { domain, responseType } = request;
+
+        // Query the local storage by the domain name using chrome.storage.local.get
+        chrome.storage.local.get(["WarningControl"], function (result) {
+            const data = result.WarningControl && result.WarningControl[domain];
+
+            // Prepare the response
+            const response = {
+                responseType,
+                data: data || ''
+            };
+
+            // Send the response back to the popup
+            chrome.runtime.sendMessage(response);
+        });
+
+        // Return true to indicate that the response will be sent asynchronously
+        return true;
+    }
+});
+
+// Event listener for messages from the popup script to save data
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    if (request.action === 'SaveData') {
+        const { domain, data } = request;
+
+        // Retrieve existing data from storage
+        chrome.storage.local.get('WarningControl', function (result) {
+            const warningControl = result.WarningControl || {};
+
+            // Update or add the data for the site domain
+            warningControl[domain] = data;
+
+            // Save the updated data to storage
+            chrome.storage.local.set({ WarningControl: warningControl }, function () {
+                // Check if the data exists for the specific site domain
+                const success = warningControl[domain] === data;
+
+                // Send the response indicating success or failure
+                chrome.runtime.sendMessage({ SaveDataResp: success });
+            });
+        });
+
+        // Return true to indicate that the response will be sent asynchronously
+        return true;
+    }
+});
