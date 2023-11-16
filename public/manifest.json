@@ -10,11 +10,17 @@
   "host_permissions": [
     "*://*/*"
   ],
+  "icons": {
+    "16": "notifymelogo.png",
+    "32": "notifymelogo.png",
+    "48": "notifymelogo.png",
+    "128": "notifymelogo.png"
+  },
   "optional_host_permissions": [
   ],
   "web_accessible_resources": [
     {
-      "resources": [ "warning-sign-banner.jpeg" ],
+      "resources": [ "warning-sign-banner.jpeg", "notifyme.png" ],
       "matches": [ "*://*/*" ]
     },
     {

@@ -12,14 +12,18 @@ const StyledSettingsIcon = styled(SettingsOutlinedIcon)`
     }
 `;
 
+const logoUrl = chrome.runtime.getURL('notifyme.png');
+
 function openSettingsPage() {
     chrome.tabs.create({ url: chrome.runtime.getURL("settings.html") });
 }
 
 function Popup() {
     const [siteUrl, setSiteUrl] = React.useState('');
-    const [bannerImageUrl, setBannerImageUrl] = React.useState('warning-sign-banner.jpeg');
+    const [bannerImageUrl, setBannerImageUrl] = React.useState('');
     const [warningMessage, setWarningMessage] = React.useState('');
+    const [saveStatus, setSaveStatus] = React.useState('idle');
+
 
     React.useEffect(() => {
         console.log('Popup mounted');
@@ -43,12 +47,19 @@ function Popup() {
 
         // Listener for the response from the background script
         const messageListener = (message, sender, sendResponse) => {
+            console.log('Received message:', message);
             if (message.action === 'PopupGetWarningStatusResp') {
-                console.log('Received message:', message);
                 // Update the state with the received data when the block status is true
-                if (message) {
-                    setBannerImageUrl(message.bannerImageUrl);
-                    setWarningMessage(message.warningMessage);
+                if (message.data) {
+                    setBannerImageUrl(message.data.bannerImageUrl);
+                    setWarningMessage(message.data.warningMessage);
+                }
+            } else if (message.action === 'SaveDataResponse') {
+                // Handle the response from the background script
+                if (message.success) {
+                    setSaveStatus('success');
+                } else {
+                    setSaveStatus('failure');
                 }
             }
         };
@@ -63,6 +74,8 @@ function Popup() {
     }, []);
 
     const saveData = () => {
+        setSaveStatus('loading');
+
         // Create an object containing the updated data
         const data = {
             bannerImageUrl: bannerImageUrl,
@@ -74,17 +87,16 @@ function Popup() {
             action: 'SaveData',
             domain: siteUrl,
             data: data
-        }, function (response) {
-            // Handle the response from the background script (if needed)
-            console.log('SaveData response:', response);
         });
     };
 
     const handleBannerImageUrlChange = (event) => {
+        setSaveStatus('idle');
         setBannerImageUrl(event.target.value);
     };
 
     const handleWarningMessageChange = (event) => {
+        setSaveStatus('idle');
         setWarningMessage(event.target.value);
     };
 
@@ -92,7 +104,13 @@ function Popup() {
         <Box width={300}>
             <Grid container spacing={2} alignItems="center">
                 <Grid item xs={10} style={{ textAlign: 'center' }}>
-                    <Typography variant="h6">Notify Me!</Typography>
+                    <Typography variant="h6" style={{ marginLeft: 60}}>
+                        <img
+                            src={logoUrl}
+                            alt="Notify Me!"
+                            style={{ width: 150, marginTop: 10 }}
+                        />
+                    </Typography>
                 </Grid>
                 <Grid item xs={2} style={{ textAlign: 'right' }}>
                     <StyledSettingsIcon onClick={openSettingsPage} />
@@ -119,7 +137,7 @@ function Popup() {
                         label="Banner Image URL"
                         fullWidth
                         value={bannerImageUrl}
-                        helperText="Enter the URL of the banner image"
+                        helperText="Enter the URL of the banner image, or use default image: warning-sign-banner.jpeg"
                         onChange={handleBannerImageUrlChange}
                     />
                 </Grid>
@@ -136,7 +154,15 @@ function Popup() {
                     />
                 </Grid>
                 <Grid item xs={12} style={{ textAlign: 'center' }}>
-                    <Button variant="contained" onClick={saveData}>Save</Button>
+                    <Button 
+                        variant="outlined" 
+                        color="primary" 
+                        onClick={saveData} 
+                        disabled={saveStatus === 'loading'}
+                        style={{ width: 168 }}
+                        >
+                        {saveStatus === 'loading' ? 'Updating' : saveStatus === 'success' ? 'Saved!' : 'Save'}
+                    </Button>
                 </Grid>
             </Grid>
         </Box>

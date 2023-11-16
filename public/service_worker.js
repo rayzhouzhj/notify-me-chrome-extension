@@ -38,7 +38,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
             // Prepare the response
             const response = {
-                responseType,
+                action: responseType,
                 data: data || ''
             };
 
@@ -69,7 +69,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 const success = warningControl[domain] === data;
 
                 // Send the response indicating success or failure
-                chrome.runtime.sendMessage({ SaveDataResp: success });
+                chrome.runtime.sendMessage({ action: 'SaveDataResponse', success: success });
             });
         });
 
