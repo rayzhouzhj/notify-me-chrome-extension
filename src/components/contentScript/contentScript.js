@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { 
-    Box,
+    Modal,
     Button,
     Card, 
     CardActions, 
@@ -54,80 +54,44 @@ function ContentScript() {
         });
     }
 
+    const handleCloseModal = () => {
+        setOpen(false);
+    };
+
     return (
         
-        <Box style={{
-            position: "fixed",
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0,
-            background: "rgba(0, 0, 0, 0.3)",
-            zIndex: 999999999,
-        }}>
-            <Box style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                background: "white",
-                borderRadius: 10
-            }}>
-                <Card sx={{ maxWidth: 345 }}>
+        <Modal
+            open={open}
+            onClose={handleCloseModal}
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}
+        >
+            <Card sx={{ width: '360px', outline: 'none' }}>
+                {
+                    bannerImageUrl && 
                     <CardMedia
-                        component="img"
-                        sx={{ height: 140 }}
-                        src={bannerImageUrl}
-                        title="Danger"
-                        width={345}
-                    />
-                    <CardContent style={{ paddingLeft: '16px' }}>
-                        <Typography variant="body2" color="text.secondary" style={{
-                            fontFamily: "Roboto, Helvetica, Arial, sans-serif",
-                            letterSpacing: "0.01071em",
-                            fontWeight: 400,
-                            color: "rgba(0, 0, 0, 0.6)"
-                        }}>
-                            {warningMessage}
-                        </Typography>
-                    </CardContent>
-                    <CardActions style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        paddingLeft: '16px',
-                        paddingRight: '16px',
-                        paddingBottom: '16px'
-                    }}>
-                        <Button size="small" onClick={dismissAlert}
-                            style={{
-                                background: "none",
-                                border: "none",
-                                padding: 0,
-                                color: "rgb(25, 118, 210)",
-                                cursor: "pointer",
-                                fontFamily: "Roboto, Helvetica, Arial, sans-serif",
-                                fontWeight: 500,
-                                fontSize: "13px",
-                                textDecoration: "none",
-                                letterSpacing: "0.02857em"
-                            }}>DISMISS FOR 5 MINUTES</Button>
-                        <Button size="small" onClick={() => setOpen(false)}
-                            style={{
-                                background: "none",
-                                border: "none",
-                                padding: 0,
-                                color: "rgb(25, 118, 210)",
-                                cursor: "pointer",
-                                fontFamily: "Roboto, Helvetica, Arial, sans-serif",
-                                fontWeight: 500,
-                                fontSize: "13px",
-                                textDecoration: "none",
-                                letterSpacing: "0.02857em"
-                            }}>DISMISS</Button>
-                    </CardActions>
-                </Card>
-            </Box>
-        </Box>
+                            component="img"
+                            sx={{ height: 140 }}
+                            src={bannerImageUrl}
+                            title="Warning"
+                            width={360}
+                />}
+                <CardContent style={{ paddingLeft: '16px' }}>
+                    <Typography variant="body2" color="text.secondary">
+                        {warningMessage}
+                    </Typography>
+                </CardContent>
+                <CardActions style={{
+                    display: "flex",
+                    justifyContent: "space-between"
+                }}>
+                    <Button size="small" onClick={dismissAlert}>DISMISS FOR 5 MINUTES</Button>
+                </CardActions>
+            </Card>
+        </Modal>
     );
 }
 
