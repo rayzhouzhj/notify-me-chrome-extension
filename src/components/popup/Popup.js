@@ -159,7 +159,7 @@ function Popup() {
                         maxRows={4}
                         fullWidth
                         value={warningMessage}
-                        helperText="Leave blank to use default message"
+                        helperText="Message to show up in the warning popup"
                         onChange={handleWarningMessageChange}
                     />
                 </Grid>
