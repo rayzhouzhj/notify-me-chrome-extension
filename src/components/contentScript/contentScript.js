@@ -10,16 +10,6 @@ import {
     CardMedia, 
     Typography 
 } from "@mui/material";
-import { styled } from "@mui/system";
-
-const TextButton = styled(Button)`
-    background: none;
-    border: none;
-    padding: 0;
-    color: blue;
-    text-decoration: underline;
-    cursor: pointer;
-`;
 
 function ContentScript() {
     const defaultImageUrl = chrome.runtime.getURL('warning-sign-banner.jpeg');
