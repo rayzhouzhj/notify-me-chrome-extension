@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import {
-    Container, Card, TextField, CardContent, Typography, Divider, Switch, FormControlLabel, FormGroup,
-    Button, Box, Stack
+    Container, Card, TextField, CardContent, Typography, Divider, Switch,
+    Button, Stack, Modal, CardActions
 } from "@mui/material";
 import { styled } from '@mui/material/styles';
 
@@ -52,10 +52,12 @@ const AntSwitch = styled(Switch)(({ theme }) => ({
 function Settings() {
     
     const [allWebsiteData, setAllWebsiteData] = useState({});
-
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
+    
     React.useEffect(() => {
         chrome.runtime.sendMessage({
-            action: 'GetAllData',
+            action: 'GET_ALL_SETTINGS',
             responseType: 'SettingGetAllDataResp'
         });
 
@@ -66,6 +68,29 @@ function Settings() {
                 // Update the state with the received data
                 if (message.data) {
                     setAllWebsiteData(message.data);
+                }
+            } else if (message.action === 'SaveDataResponse') {
+                if(message.success) {
+                    setModalMessage(message.message);
+                    setModalOpen(true);
+                } else {
+                    setModalMessage("Failed to save the settings.");
+                    setModalOpen(true);
+                }
+            } else if (message.action === 'DeleteDataResponse') {
+                if (message.success) {
+                    // Remove the deleted record from the state
+                    setAllWebsiteData((prevData) => {
+                        const newData = { ...prevData };
+                        delete newData[message.websiteDomain];
+                        return newData;
+                    });
+
+                    setModalMessage(message.message);
+                    setModalOpen(true);
+                } else {
+                    setModalMessage("Failed to delete the settings.");
+                    setModalOpen(true);
                 }
             }
         };
@@ -80,13 +105,32 @@ function Settings() {
     }, []);
 
     const handleSave = (websiteDomain) => {
-        // Save logic for the specific website domain
-        console.log(`Save settings for ${websiteDomain}`);
+        // Look up the data by domain
+        const websiteData = allWebsiteData[websiteDomain];
+
+        // Send a message to the background script
+        chrome.runtime.sendMessage({
+            action: 'SAVE_SETTINGS',
+            domain: websiteDomain, 
+            data: websiteData 
+        });
     };
 
     const handleDelete = (websiteDomain) => {
-        // Delete logic for the specific website domain
-        console.log(`Delete settings for ${websiteDomain}`);
+        // Look up the data by domain
+        const websiteData = allWebsiteData[websiteDomain];
+
+        // Send a message to the background script
+        chrome.runtime.sendMessage({ 
+            action: 'DELETE_SETTINGS', 
+            domain: websiteDomain,
+            data: websiteData 
+        });
+    };
+
+    const handleCloseModal = () => {
+        setModalOpen(false);
+        setModalMessage('');
     };
 
     return (
@@ -100,7 +144,17 @@ function Settings() {
                             <Stack direction="row" spacing={1} alignItems="center">
                                 <Typography>OFF</Typography>
                                 <AntSwitch checked={allWebsiteData[websiteDomain]?.isActive || false}
-                                    inputProps={{ 'aria-label': 'ant design' }} />
+                                    inputProps={{ 'aria-label': 'ant design' }} 
+                                    onChange={ (e) => {
+                                        setAllWebsiteData((prevData) => ({
+                                            ...prevData,
+                                            [websiteDomain]: {
+                                                ...prevData[websiteDomain],
+                                                isActive: e.target.checked
+                                            }
+                                        }));
+                                    }}
+                                    />
                                 <Typography>ON</Typography>
                             </Stack>
                             <TextField
@@ -149,6 +203,26 @@ function Settings() {
                     </CardContent>
                 </Card>
             ))}
+            <Modal
+                open={modalOpen}
+                onClose={handleCloseModal}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}
+            >
+                <Card sx={{ maxWidth: '400px', padding: '16px' }}>
+                    <CardContent>
+                        <Typography variant="h6">{modalMessage}</Typography>
+                    </CardContent>
+                    <CardActions style={{ justifyContent: 'flex-end' }}>
+                        <Button variant="contained" onClick={handleCloseModal}>
+                            Close
+                        </Button>
+                    </CardActions>
+                </Card>
+            </Modal>
         </Container>
     );
 }

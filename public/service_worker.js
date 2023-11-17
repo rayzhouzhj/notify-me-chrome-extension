@@ -75,7 +75,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 // Event listener for messages from the settings page
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    if (request.action === 'GetAllData') {
+    if (request.action === 'GET_ALL_SETTINGS') {
 
         // Query the local storage by the domain name using chrome.storage.local.get
         chrome.storage.local.get(["WarningControl"], function (result) {
@@ -89,6 +89,33 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
             // Send the response back to the popup
             chrome.runtime.sendMessage(response);
+        });
+
+        // Return true to indicate that the response will be sent asynchronously
+        return true;
+    } else if (request.action === 'DELETE_SETTINGS') {
+        // Delete the data for the specified domain
+        const websiteDomain = request.domain;
+
+        chrome.storage.local.get(["WarningControl"], function (result) {
+            const data = result.WarningControl || {};
+            delete data[websiteDomain];
+
+            // Update the storage with the modified data
+            chrome.storage.local.set({ "WarningControl": data }, function () {
+                // Check if the data exists for the specific site domain
+                const success = !data.hasOwnProperty(websiteDomain);
+                // Prepare the response
+                const response = {
+                    action: 'DeleteDataResponse',
+                    websiteDomain: websiteDomain,
+                    message: `Settings for ${websiteDomain} deleted successfully.`,
+                    success: success
+                };
+
+                // Send the response back to the settings page
+                chrome.runtime.sendMessage(response);
+            });
         });
 
         // Return true to indicate that the response will be sent asynchronously
@@ -122,7 +149,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 // Event listener for messages from the popup script to save data
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    if (request.action === 'SaveData' || request.action === 'SuspendWarning') {
+    if (request.action === 'SAVE_SETTINGS' || request.action === 'SuspendWarning') {
         const { domain, data } = request;
 
         // Retrieve existing data from storage
@@ -137,9 +164,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 // Check if the data exists for the specific site domain
                 const success = warningControl[domain] === data;
 
-                if (request.action === 'SaveData') {
+                if (request.action === 'SAVE_SETTINGS') {
                     // Send the response indicating success or failure
-                    chrome.runtime.sendMessage({ action: 'SaveDataResponse', success: success });
+                    chrome.runtime.sendMessage({ action: 'SaveDataResponse', success: success, message: `Settings for ${domain} saved successfully.` });
                 }
             });
         });

@@ -87,7 +87,7 @@ function Popup() {
 
         // Send a message to the background script
         chrome.runtime.sendMessage({
-            action: 'SaveData',
+            action: 'SAVE_SETTINGS',
             domain: siteUrl,
             data: data
         });
