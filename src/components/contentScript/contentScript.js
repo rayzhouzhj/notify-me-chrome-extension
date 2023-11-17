@@ -8,7 +8,7 @@ import {
     CardActions, 
     CardContent, 
     CardMedia, 
-    Typography 
+    Typography
 } from "@mui/material";
 
 function ContentScript() {
@@ -16,11 +16,13 @@ function ContentScript() {
     const [bannerImageUrl, setBannerImageUrl] = useState('');
     const [warningMessage, setWarningMessage] = useState('');
     const [open, setOpen] = useState(false);
+    const [data, setData] = useState({});
 
     // Event listener for messages from the background script
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.log('Received message:', message);
         if (message.action === 'ShowAlert') {
+            setData(message.data);
             if (message.data.bannerImageUrl === 'warning-sign-banner.jpeg') {
                 setBannerImageUrl(defaultImageUrl);
             } else {
@@ -34,6 +36,23 @@ function ContentScript() {
     });
 
     if (!open) return null;
+
+    const dismissAlert = () => {
+        setOpen(false);
+
+        const currentUrl = window.location.href;
+        const hostname = new URL(currentUrl).hostname;
+
+        // Send a message to the background script
+        chrome.runtime.sendMessage({
+            action: 'SuspendWarning',
+            domain: hostname,
+            data: {...data, 
+                suspendStart: Date.now(),
+                suspendEnd: Date.now() + 5 * 60 * 1000
+            }
+        });
+    }
 
     return (
         
@@ -74,23 +93,37 @@ function ContentScript() {
                     </CardContent>
                     <CardActions style={{
                         display: "flex",
-                        justifyContent: "flex-end",
+                        justifyContent: "space-between",
+                        paddingLeft: '16px',
                         paddingRight: '16px',
                         paddingBottom: '16px'
                     }}>
+                        <Button size="small" onClick={dismissAlert}
+                            style={{
+                                background: "none",
+                                border: "none",
+                                padding: 0,
+                                color: "rgb(25, 118, 210)",
+                                cursor: "pointer",
+                                fontFamily: "Roboto, Helvetica, Arial, sans-serif",
+                                fontWeight: 500,
+                                fontSize: "13px",
+                                textDecoration: "none",
+                                letterSpacing: "0.02857em"
+                            }}>DISMISS FOR 5 MINUTES</Button>
                         <Button size="small" onClick={() => setOpen(false)}
-                        style={{
-                            background: "none",
-                            border: "none",
-                            padding: 0,
-                            color: "rgb(25, 118, 210)",
-                            cursor: "pointer",
-                            fontFamily: "Roboto, Helvetica, Arial, sans-serif",
-                            fontWeight: 500,
-                            fontSize: "13px",
-                            textDecoration: "none",
-                            letterSpacing: "0.02857em"
-                            }}>CLOSE</Button>
+                            style={{
+                                background: "none",
+                                border: "none",
+                                padding: 0,
+                                color: "rgb(25, 118, 210)",
+                                cursor: "pointer",
+                                fontFamily: "Roboto, Helvetica, Arial, sans-serif",
+                                fontWeight: 500,
+                                fontSize: "13px",
+                                textDecoration: "none",
+                                letterSpacing: "0.02857em"
+                            }}>DISMISS</Button>
                     </CardActions>
                 </Card>
             </Box>

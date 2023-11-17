@@ -11,6 +11,17 @@ function queryLocalStorageByDomainAndSendMessageToContentScript(tab) {
             // Check if there is data for the current hostname
             if (warningControlData.hasOwnProperty(hostname)
                 && warningControlData[hostname].isActive) {
+
+                if (warningControlData[hostname].suspendStart) {
+                    const suspendStart = warningControlData[hostname].suspendStart;
+                    const suspendEnd = warningControlData[hostname].suspendEnd;
+                    const currentTime = Date.now();
+                    if (currentTime >= suspendStart && currentTime <= suspendEnd) {
+                        resolve([]);
+                        return;
+                    }
+                }
+
                 const filteredData = warningControlData[hostname];
                 // Send the filtered data back to the content script
                 chrome.tabs.sendMessage(tab.id, {
@@ -88,7 +99,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 // Event listener for messages from the popup script to save data
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    if (request.action === 'SaveData') {
+    if (request.action === 'SaveData' || request.action === 'SuspendWarning') {
         const { domain, data } = request;
 
         // Retrieve existing data from storage
@@ -103,8 +114,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 // Check if the data exists for the specific site domain
                 const success = warningControl[domain] === data;
 
-                // Send the response indicating success or failure
-                chrome.runtime.sendMessage({ action: 'SaveDataResponse', success: success });
+                if (request.action === 'SaveData') {
+                    // Send the response indicating success or failure
+                    chrome.runtime.sendMessage({ action: 'SaveDataResponse', success: success });
+                }
             });
         });
 
