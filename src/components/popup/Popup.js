@@ -104,7 +104,7 @@ function Popup() {
         <Box width={300}>
             <Grid container spacing={2} alignItems="center">
                 <Grid item xs={10} style={{ textAlign: 'center' }}>
-                    <Typography variant="h6" style={{ marginLeft: 60}}>
+                    <Typography variant="h6" style={{ marginLeft: 50}}>
                         <img
                             src={logoUrl}
                             alt="Notify Me!"

@@ -5,15 +5,48 @@ function sendMessageToContentScript(tabId, message) {
     chrome.tabs.sendMessage(tabId, message);
 }
 
+// Function to query the local storage by domain name and send the data to the content script
+function queryLocalStorageByDomainAndSendMessageToContentScript(tab) {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get(['WarningControl'], function (result) {
+            const warningControlData = result.WarningControl;
+            // Get the hostname of the current tab
+            const hostname = new URL(tab.url).hostname;
+
+            // Check if there is data for the current hostname
+            if (warningControlData.hasOwnProperty(hostname)) {
+                const filteredData = warningControlData[hostname];
+                // Send the filtered data back to the content script
+                chrome.tabs.sendMessage(tab.id, {
+                    action: 'ShowAlert',
+                    data: filteredData,
+                });
+                resolve(filteredData);
+            } else {
+                resolve([]);
+            }
+        });
+    });
+}
+
 // Event listener for tab activation
 chrome.tabs.onActivated.addListener((activeInfo) => {
     // Get the current active tab
     chrome.tabs.get(activeInfo.tabId, (tab) => {
         // Send a message to the content script of the active tab if the URL matches
-        if (tab.url.includes('developer.chrome.com') || tab.url.includes('cms.scmp.com')) {
-            sendMessageToContentScript(tab.id, { action: 'ShowAlert', data: 'Hello from background script!' });
-        }
+        queryLocalStorageByDomainAndSendMessageToContentScript(tab)
+            .then((data) => {
+                // Handle the data received from the content script
+                console.log(data);
+            })
+            .catch((error) => {
+                // Handle any errors that occurred during the process
+                console.error(error);
+            });
     });
+
+    // Return true to indicate that the response will be sent asynchronously
+    return true;
 });
 
 // Event listener for page load
@@ -21,9 +54,15 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     // Send a message to the content script when the page finishes loading
     if (changeInfo.status === 'complete' && tab.active) {
         // Send a message to the content script of the active tab if the URL matches
-        if (tab.url.includes('developer.chrome.com') || tab.url.includes('cms.scmp.com')) {
-            sendMessageToContentScript(tab.id, { action: 'ShowAlert', data: 'Hello from background script!' });
-        }
+        queryLocalStorageByDomainAndSendMessageToContentScript(tab)
+            .then((data) => {
+                // Handle the data received from the content script
+                console.log(data);
+            })
+            .catch((error) => {
+                // Handle any errors that occurred during the process
+                console.error(error);
+            });
     }
 });
 

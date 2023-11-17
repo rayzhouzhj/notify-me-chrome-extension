@@ -29,6 +29,7 @@ function ContentScript() {
 
     // Event listener for messages from the background script
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        console.log('Received message:', message);
         if (message.action === 'ShowAlert') {
             if (message.data.bannerImageUrl === 'warning-sign-banner.jpeg') {
                 setBannerImageUrl(defaultImageUrl);
