@@ -73,6 +73,29 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
 });
 
+// Event listener for messages from the settings page
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    if (request.action === 'GetAllData') {
+
+        // Query the local storage by the domain name using chrome.storage.local.get
+        chrome.storage.local.get(["WarningControl"], function (result) {
+            const data = result.WarningControl || '';
+
+            // Prepare the response
+            const response = {
+                action: request.responseType,
+                data: data
+            };
+
+            // Send the response back to the popup
+            chrome.runtime.sendMessage(response);
+        });
+
+        // Return true to indicate that the response will be sent asynchronously
+        return true;
+    }
+});
+
 // Event listener for messages from the popup script
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (request.action === 'GetWarningStatus') {
