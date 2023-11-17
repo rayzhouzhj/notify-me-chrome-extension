@@ -1,10 +1,5 @@
 /* global chrome */
 
-// Function to send a message to the content script
-function sendMessageToContentScript(tabId, message) {
-    chrome.tabs.sendMessage(tabId, message);
-}
-
 // Function to query the local storage by domain name and send the data to the content script
 function queryLocalStorageByDomainAndSendMessageToContentScript(tab) {
     return new Promise((resolve, reject) => {
@@ -14,7 +9,8 @@ function queryLocalStorageByDomainAndSendMessageToContentScript(tab) {
             const hostname = new URL(tab.url).hostname;
 
             // Check if there is data for the current hostname
-            if (warningControlData.hasOwnProperty(hostname)) {
+            if (warningControlData.hasOwnProperty(hostname)
+                && warningControlData[hostname].isActive) {
                 const filteredData = warningControlData[hostname];
                 // Send the filtered data back to the content script
                 chrome.tabs.sendMessage(tab.id, {

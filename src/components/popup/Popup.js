@@ -1,7 +1,7 @@
 /* global chrome */
 import React from 'react';
 import {
-    Button, Grid, TextField, Box, Typography, Divider, Chip
+    Button, Grid, TextField, Box, Typography, Divider, Switch, FormControlLabel, FormGroup
 } from "@mui/material";
 import { styled } from '@mui/system';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
@@ -23,6 +23,7 @@ function Popup() {
     const [bannerImageUrl, setBannerImageUrl] = React.useState('');
     const [warningMessage, setWarningMessage] = React.useState('');
     const [saveStatus, setSaveStatus] = React.useState('idle');
+    const [active, setActive] = React.useState(false);
 
 
     React.useEffect(() => {
@@ -53,6 +54,7 @@ function Popup() {
                 if (message.data) {
                     setBannerImageUrl(message.data.bannerImageUrl);
                     setWarningMessage(message.data.warningMessage);
+                    setActive(message.data.isActive);
                 }
             } else if (message.action === 'SaveDataResponse') {
                 // Handle the response from the background script
@@ -79,7 +81,8 @@ function Popup() {
         // Create an object containing the updated data
         const data = {
             bannerImageUrl: bannerImageUrl,
-            warningMessage: warningMessage
+            warningMessage: warningMessage,
+            isActive: active
         };
 
         // Send a message to the background script
@@ -100,9 +103,14 @@ function Popup() {
         setWarningMessage(event.target.value);
     };
 
+    const handleStatusChange = (event) => {
+        setSaveStatus('idle');
+        setActive(event.target.checked);
+    };
+
     return (
         <Box width={300}>
-            <Grid container spacing={2} alignItems="center">
+            <Grid container spacing={2} alignItems="center" padding={1}>
                 <Grid item xs={10} style={{ textAlign: 'center' }}>
                     <Typography variant="h6" style={{ marginLeft: 50}}>
                         <img
@@ -128,7 +136,9 @@ function Popup() {
                 </Grid>
                 <Grid item xs={12}>
                     <Divider>
-                        <Chip label="WITH" />
+                        <FormGroup>
+                            <FormControlLabel control={<Switch checked={active} onChange={handleStatusChange} />} label="ON" />
+                        </FormGroup>
                     </Divider>
                 </Grid>
                 <Grid item xs={12}>
