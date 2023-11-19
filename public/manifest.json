@@ -6,10 +6,7 @@
   "action": {
     "default_popup": "index.html"
   },
-  "permissions": [ "tabs", "storage" ],
-  "host_permissions": [
-    "*://*/*"
-  ],
+  "permissions": [ "activeTab", "tabs", "storage", "scripting" ],
   "icons": {
     "16": "notifymelogo.png",
     "32": "notifymelogo.png",
@@ -31,11 +28,5 @@
   "background": {
     "service_worker": "service_worker.js",
     "type": "module"
-  },
-  "content_scripts": [
-    {
-        "matches": ["<all_urls>"],
-        "js": ["static/js/content.js"]
-    }
-  ]
+  }
 }

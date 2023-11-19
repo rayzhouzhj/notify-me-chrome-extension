@@ -77,6 +77,7 @@ function ContentScript() {
                             sx={{ height: 140 }}
                             src={bannerImageUrl}
                             title="Warning"
+                            alt="Warning"
                             width={360}
                 />}
                 <CardContent style={{ paddingLeft: '16px' }}>
