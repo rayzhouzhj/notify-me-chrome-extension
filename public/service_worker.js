@@ -1,10 +1,24 @@
 /* global chrome */
 
+// Function to check if the URL is valid
+function isValidURL(url) {
+    try {
+        new URL(url);
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
 // Function to query the local storage by domain name
 function queryLocalStorageByDomain(tab) {
     return new Promise((resolve, reject) => {
         chrome.storage.local.get(['WarningControl'], function (result) {
             const warningControlData = result.WarningControl;
+            if (isValidURL(tab.url) === false) {
+                resolve({});
+                return;
+            }
             const hostname = new URL(tab.url).hostname;
             if (warningControlData.hasOwnProperty(hostname) && warningControlData[hostname].isActive) {
                 const filteredData = warningControlData[hostname];

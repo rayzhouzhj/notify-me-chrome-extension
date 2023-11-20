@@ -5,6 +5,7 @@ import {
 } from "@mui/material";
 import { styled } from '@mui/system';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import validUrl from 'valid-url';
 
 const StyledSettingsIcon = styled(SettingsOutlinedIcon)`
     &:hover {
@@ -30,6 +31,10 @@ function Popup() {
         console.log('Popup mounted');
         chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
             const url = tabs[0].url;
+            if (!validUrl.isUri(url)) {
+                return;
+            }
+            
             const hostname = new URL(url).hostname;
             setSiteUrl(hostname);
             
