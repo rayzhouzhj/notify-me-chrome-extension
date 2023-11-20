@@ -1,23 +1,9 @@
 /* global chrome */
 
-// Function to check if the URL is valid
-function isValidURL(url) {
-    try {
-        new URL(url);
-        return true;
-    } catch (error) {
-        return false;
-    }
-}
-
 // Function to query the local storage by domain name
 function queryLocalStorageByDomain(tab) {
     return new Promise((resolve, reject) => {
         chrome.storage.local.get(['WarningControl'], function (result) {
-            if (!isValidURL(tab.url)) {
-                resolve({});
-                return;
-            }
             const warningControlData = result.WarningControl;
             const hostname = new URL(tab.url).hostname;
             if (warningControlData.hasOwnProperty(hostname) && warningControlData[hostname].isActive) {
@@ -30,53 +16,43 @@ function queryLocalStorageByDomain(tab) {
     });
 }
 
-// Event listener for tab activation
-chrome.tabs.onActivated.addListener((activeInfo) => {
-    // handleContentScriptInjection(activeInfo.tabId);
-    chrome.tabs.get(activeInfo.tabId, (tab) => {
+// Function to handle content script injection
+function handleContentScriptInjection(tabId) {
+    chrome.tabs.get(tabId, (tab) => {
         queryLocalStorageByDomain(tab)
             .then((filteredData) => {
                 if (Object.keys(filteredData).length > 0) {
-                    // Send a message to the injected content script
-                    chrome.tabs.sendMessage(activeInfo.tabId, {
-                        action: 'ShowAlert',
-                        data: filteredData,
-                    });
+                    // Inject the content script
+                    chrome.scripting.executeScript({
+                        target: { tabId: tabId },
+                        files: ["static/js/content.js"],
+                    })
+                        .then(() => {
+                            console.log("Script injected");
+                            // Send a message to the injected content script
+                            chrome.tabs.sendMessage(tabId, {
+                                action: 'ShowAlert',
+                                data: filteredData,
+                            });
+                        })
+                        .catch((err) => console.warn("Unexpected error", err));
                 }
             })
             .catch((error) => {
                 console.error(error);
             });
     });
+}
+
+// Event listener for tab activation
+chrome.tabs.onActivated.addListener((activeInfo) => {
+    handleContentScriptInjection(activeInfo.tabId);
 });
 
 // Event listener for page load
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete' && tab.active) {
-        chrome.tabs.get(tabId, (tab) => {
-            queryLocalStorageByDomain(tab)
-                .then((filteredData) => {
-                    if (Object.keys(filteredData).length > 0) {
-                        // Inject the content script
-                        chrome.scripting.executeScript({
-                            target: { tabId: tabId },
-                            files: ["static/js/content.js"],
-                        })
-                            .then(() => {
-                                console.log("Script injected");
-                                // Send a message to the injected content script
-                                chrome.tabs.sendMessage(tabId, {
-                                    action: 'ShowAlert',
-                                    data: filteredData,
-                                });
-                            })
-                            .catch((err) => console.warn("Unexpected error", err));
-                    }
-                })
-                .catch((error) => {
-                    console.error(error);
-                });
-        });
+        handleContentScriptInjection(tabId);
     }
 });
 
