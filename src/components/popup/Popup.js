@@ -68,6 +68,12 @@ function Popup() {
                 } else {
                     setSaveStatus('failure');
                 }
+            } else if (message.action === 'REGISTER_CONTENT_SCRIPT_RESPONSE') {
+                if (message.success) {
+                    setActive(true);
+                } else {
+                    setActive(false);
+                }
             }
         };
 
@@ -110,7 +116,25 @@ function Popup() {
 
     const handleStatusChange = (event) => {
         setSaveStatus('idle');
-        setActive(event.target.checked);
+        if (!event.target.checked) {
+            setActive(false);
+        } else {
+            chrome.permissions.request(
+                {
+                    origins: [`https://${siteUrl}/*`]
+                },
+                (granted) => {
+                    if (granted) {
+                        console.log('Permission granted');
+                        // Send a message to the background script to register content script
+                        chrome.runtime.sendMessage({
+                            action: 'REGISTER_CONTENT_SCRIPT',
+                            domain: siteUrl
+                        });
+                    }
+                }
+            );
+        }
     };
 
     return (

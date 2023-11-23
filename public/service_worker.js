@@ -141,6 +141,52 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
         // Return true to indicate that the response will be sent asynchronously
         return true;
+    } else if (request.action === 'REGISTER_CONTENT_SCRIPT') {
+
+        // Create a content script object
+        const contentScript = {
+            matches: [`https://${request.domain}/*`],
+            js: ['static/js/content.js'],
+            id: "notify-me-content-script",
+        };
+
+        // Check if content script is already registered
+        chrome.scripting.getRegisteredContentScripts((registeredScripts) => {
+            if (chrome.runtime.lastError) {
+                // Error occurred while retrieving registered content scripts
+                console.error('Error occurred while retrieving registered content scripts:', chrome.runtime.lastError);
+
+                // Send error response back to the popup
+                chrome.runtime.sendMessage({ action: 'REGISTER_CONTENT_SCRIPT_RESPONSE', success: false });
+                return;
+            }
+
+            const isRegistered = registeredScripts.some((script) => script.id === contentScript.id);
+            if (isRegistered) {
+                // Content script is already registered
+                console.log('Content script is already registered:', contentScript.id);
+
+                // Send success response back to the popup
+                chrome.runtime.sendMessage({ action: 'REGISTER_CONTENT_SCRIPT_RESPONSE', success: true });
+            } else {
+                // Register the content script
+                chrome.scripting.registerContentScripts([contentScript], (result) => {
+                    if (chrome.runtime.lastError) {
+                        // Content script registration failed
+                        console.error('Content script registration failed:', chrome.runtime.lastError);
+
+                        // Send error response back to the popup
+                        chrome.runtime.sendMessage({ action: 'REGISTER_CONTENT_SCRIPT_RESPONSE', success: false });
+                    } else {
+                        // Content script registered successfully
+                        console.log('Content script registered!');
+
+                        // Send success response back to the popup
+                        chrome.runtime.sendMessage({ action: 'REGISTER_CONTENT_SCRIPT_RESPONSE', success: true });
+                    }
+                });
+            }
+        });
     }
 });
 
