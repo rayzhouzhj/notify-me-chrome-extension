@@ -22,6 +22,18 @@ function queryLocalStorageByDomain(tab) {
             const hostname = new URL(tab.url).hostname;
             if (warningControlData.hasOwnProperty(hostname) && warningControlData[hostname].isActive) {
                 const filteredData = warningControlData[hostname];
+
+                if (filteredData.hasOwnProperty('suspendStart') && filteredData.hasOwnProperty('suspendEnd')) {
+                    const currentTime = Date.now();
+                    const suspendStart = filteredData.suspendStart;
+                    const suspendEnd = filteredData.suspendEnd;
+
+                    if (currentTime >= suspendStart && currentTime <= suspendEnd) {
+                        resolve({});
+                        return;
+                    }
+                }
+
                 resolve(filteredData);
             } else {
                 resolve({});
