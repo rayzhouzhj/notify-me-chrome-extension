@@ -51,17 +51,31 @@ function handleContentScriptInjection(tabId) {
                     // Inject the content script
                     chrome.scripting.executeScript({
                         target: { tabId: tabId },
-                        files: ["static/js/content.js"],
-                    })
-                        .then(() => {
-                            console.log("Script injected");
+                        func: () => !!window.__NOTIFY_ME_EXTENSION_INJECTED__,
+                    }).then((results) => {
+                        if (results && results[0] && results[0].result) {
                             // Send a message to the injected content script
                             chrome.tabs.sendMessage(tabId, {
                                 action: 'ShowAlert',
                                 data: filteredData,
                             });
-                        })
-                        .catch((err) => console.warn("Unexpected error", err));
+                        } else {
+                            // Inject the content script if not already injected
+                            chrome.scripting.executeScript({
+                                target: { tabId: tabId },
+                                files: ["static/js/content.js"],
+                            })
+                                .then(() => {
+                                    console.log("Script injected");
+                                    // Send a message to the injected content script
+                                    chrome.tabs.sendMessage(tabId, {
+                                        action: 'ShowAlert',
+                                        data: filteredData,
+                                    });
+                                })
+                                .catch((err) => console.warn("Unexpected error", err));
+                        }
+                    });
                 }
             })
             .catch((error) => {
