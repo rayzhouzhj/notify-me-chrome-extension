@@ -24,3 +24,9 @@ const initWebComponent = function () {
 };
 
 initWebComponent();
+
+// Add a unique identifier to the page
+if (!window.__NOTIFY_ME_EXTENSION_INJECTED__) {
+    window.__NOTIFY_ME_EXTENSION_INJECTED__ = true;
+    console.log("Content script injected.");
+}
