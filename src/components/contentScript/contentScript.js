@@ -59,27 +59,33 @@ function ContentScript() {
     };
 
     return (
-        
         <Modal
             open={open}
             onClose={handleCloseModal}
+            // Use the shadow root as container to ensure proper isolation
+            container={() => document.querySelector('react-extension-container')?.shadowRoot?.getElementById('reactExtensionPoint') || document.body}
             style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                pointerEvents: 'auto'
             }}
         >
-            <Card sx={{ width: '360px', outline: 'none' }}>
-                {
-                    bannerImageUrl && 
+            <Card sx={{ 
+                width: '360px', 
+                outline: 'none',
+                pointerEvents: 'auto'
+            }}>
+                {bannerImageUrl && 
                     <CardMedia
-                            component="img"
-                            sx={{ height: 140 }}
-                            src={bannerImageUrl}
-                            title="Warning"
-                            alt="Warning"
-                            width={360}
-                />}
+                        component="img"
+                        sx={{ height: 140 }}
+                        src={bannerImageUrl}
+                        title="Warning"
+                        alt="Warning"
+                        width={360}
+                    />
+                }
                 <CardContent style={{ paddingLeft: '16px' }}>
                     <Typography variant="body2" color="text.secondary">
                         {warningMessage}
@@ -89,7 +95,9 @@ function ContentScript() {
                     display: "flex",
                     justifyContent: "space-between"
                 }}>
-                    <Button size="small" onClick={dismissAlert}>DISMISS FOR 5 MINUTES</Button>
+                    <Button size="small" onClick={dismissAlert}>
+                        DISMISS FOR 5 MINUTES
+                    </Button>
                 </CardActions>
             </Card>
         </Modal>

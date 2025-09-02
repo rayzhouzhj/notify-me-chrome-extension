@@ -140,7 +140,7 @@ function Popup() {
     return (
         <Box width={300}>
             <Grid container spacing={2} alignItems="center" padding={1}>
-                <Grid item xs={10} style={{ textAlign: 'center' }}>
+                <Grid size={10} style={{ textAlign: 'center' }}>
                     <Typography variant="h6" style={{ marginLeft: 50}}>
                         <img
                             src={logoUrl}
@@ -149,10 +149,10 @@ function Popup() {
                         />
                     </Typography>
                 </Grid>
-                <Grid item xs={2} style={{ textAlign: 'right' }}>
+                <Grid size={2} style={{ textAlign: 'right' }}>
                     <StyledSettingsIcon onClick={openSettingsPage} />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                     <TextField
                         id="outlined-read-only-input"
                         label="Website Domain"
@@ -163,14 +163,14 @@ function Popup() {
                         margin="normal"
                     />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                     <Divider>
                         <FormGroup>
                             <FormControlLabel control={<Switch checked={active} onChange={handleStatusChange} />} label="ON" />
                         </FormGroup>
                     </Divider>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                     <TextField
                         id="outlined-multiline-flexible"
                         label="Banner Image URL"
@@ -180,7 +180,7 @@ function Popup() {
                         onChange={handleBannerImageUrlChange}
                     />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                     <TextField
                         id="outlined-multiline-flexible"
                         label="Message"
@@ -192,7 +192,7 @@ function Popup() {
                         onChange={handleWarningMessageChange}
                     />
                 </Grid>
-                <Grid item xs={12} style={{ textAlign: 'center' }}>
+                <Grid size={12} style={{ textAlign: 'center' }}>
                     <Button 
                         variant="outlined" 
                         color="primary" 
