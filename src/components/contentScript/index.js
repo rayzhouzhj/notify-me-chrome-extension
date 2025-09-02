@@ -13,15 +13,16 @@ class ReactExtensionContainer extends HTMLElement {
         const mountPoint = document.createElement("div");
         mountPoint.id = "reactExtensionPoint";
         
-        // Set styles for the mount point
+        // Set essential styles for the mount point
         mountPoint.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 2147483647;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            pointer-events: none !important;
+            z-index: 2147483647 !important;
+            overflow: hidden !important;
         `;
 
         const shadowRoot = this.attachShadow({ mode: "open" });
@@ -34,14 +35,32 @@ class ReactExtensionContainer extends HTMLElement {
                 box-sizing: border-box;
             }
             
-            /* Ensure modal can receive pointer events */
+            /* Modal without backdrop - clean overlay */
             .MuiModal-root {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
                 pointer-events: auto !important;
+                z-index: 1 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                background-color: transparent !important;
             }
             
-            /* Ensure backdrop works properly */
+            /* Show a subtle backdrop for clicking to dismiss */
             .MuiBackdrop-root {
-                pointer-events: auto !important;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                background-color: rgba(0, 0, 0, 0.1) !important;
+                opacity: 1 !important;
+                z-index: -1 !important;
+                transition: opacity 0.2s ease-in-out !important;
             }
             
             /* Custom styles to prevent layout issues */
@@ -49,6 +68,77 @@ class ReactExtensionContainer extends HTMLElement {
                 font-family: "Roboto", "Helvetica", "Arial", sans-serif;
                 -webkit-font-smoothing: antialiased;
                 -moz-osx-font-smoothing: grayscale;
+                position: relative !important;
+            }
+            
+            /* Enhanced card styling - clean modern look */
+            .MuiCard-root {
+                position: relative !important;
+                z-index: 1000 !important;
+                pointer-events: auto !important;
+                background-color: white !important;
+                border-radius: 12px !important;
+                box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.12), 0px 4px 16px rgba(0, 0, 0, 0.08) !important;
+                border: 1px solid rgba(0, 0, 0, 0.08) !important;
+                overflow: hidden !important;
+                max-width: 380px !important;
+                width: 380px !important;
+                animation: slideInFromTop 0.3s ease-out !important;
+            }
+            
+            /* Slide-in animation */
+            @keyframes slideInFromTop {
+                from {
+                    transform: translateY(-20px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+            
+            /* Card content styling */
+            .MuiCardContent-root {
+                padding: 0px 20px 0px 20px !important;
+            }
+            
+            /* Card actions styling */
+            .MuiCardActions-root {
+                padding: 0px 20px 20px 20px !important;
+                background-color: #fafafa !important;
+            }
+            
+            /* Button styling */
+            .MuiButton-root {
+                border-radius: 8px !important;
+                text-transform: none !important;
+                font-weight: 600 !important;
+                padding: 8px 16px !important;
+            }
+            
+            /* Typography styling */
+            .MuiTypography-root {
+                color: #333 !important;
+                line-height: 1.5 !important;
+            }
+            
+            /* Card media styling */
+            .MuiCardMedia-root {
+                border-radius: 0 !important;
+                width: 100% !important;
+                height: 140px !important;
+                object-fit: cover !important;
+                display: block !important;
+                max-width: 100% !important;
+            }
+            
+            /* Ensure images don't overflow */
+            .MuiCardMedia-img {
+                width: 100% !important;
+                height: 140px !important;
+                object-fit: cover !important;
+                display: block !important;
             }
         `;
         
