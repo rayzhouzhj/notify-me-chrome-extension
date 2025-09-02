@@ -10,8 +10,14 @@ const theme = createTheme();
 
 class ReactExtensionContainer extends HTMLElement {
     connectedCallback() {
-        const mountPoint = document.createElement("div");
-        mountPoint.id = "reactExtensionPoint";
+        try {
+            // Check if already initialized
+            if (this.shadowRoot && this.shadowRoot.getElementById('reactExtensionPoint')) {
+                return;
+            }
+
+            const mountPoint = document.createElement("div");
+            mountPoint.id = "reactExtensionPoint";
         
         // Set essential styles for the mount point
         mountPoint.style.cssText = `
@@ -154,20 +160,32 @@ class ReactExtensionContainer extends HTMLElement {
                 </ThemeProvider>
             </StyledEngineProvider>
         );
+        } catch (error) {
+            console.error('Error initializing ReactExtensionContainer:', error);
+        }
     }
 }
 
 const initWebComponent = function () {
-    customElements.define("react-extension-container", ReactExtensionContainer);
+    try {
+        // Check if the custom element is already defined
+        if (!customElements.get("react-extension-container")) {
+            customElements.define("react-extension-container", ReactExtensionContainer);
+        }
 
-    const app = document.createElement("react-extension-container");
-    document.documentElement.appendChild(app);
+        // Check if the component is already added to the page
+        if (!document.querySelector("react-extension-container")) {
+            const app = document.createElement("react-extension-container");
+            document.documentElement.appendChild(app);
+        }
+    } catch (error) {
+        console.error('Error initializing web component:', error);
+    }
 };
 
-initWebComponent();
-
-// Add a unique identifier to the page
+// Only initialize if not already done
 if (!window.__NOTIFY_ME_EXTENSION_INJECTED__) {
     window.__NOTIFY_ME_EXTENSION_INJECTED__ = true;
+    initWebComponent();
     console.log("Content script injected.");
 }

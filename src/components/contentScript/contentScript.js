@@ -18,6 +18,29 @@ function ContentScript() {
     const [open, setOpen] = useState(false);
     const [data, setData] = useState({});
 
+    // Helper function to safely send messages to background script
+    const safeSendMessage = (message) => {
+        return new Promise((resolve, reject) => {
+            try {
+                if (chrome.runtime && chrome.runtime.sendMessage) {
+                    chrome.runtime.sendMessage(message, (response) => {
+                        if (chrome.runtime.lastError) {
+                            console.warn('Chrome runtime error:', chrome.runtime.lastError.message);
+                            reject(chrome.runtime.lastError);
+                        } else {
+                            resolve(response);
+                        }
+                    });
+                } else {
+                    reject(new Error('Chrome runtime not available'));
+                }
+            } catch (error) {
+                console.warn('Error sending message:', error);
+                reject(error);
+            }
+        });
+    };
+
     // Event listener for messages from the background script
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.log('Received message:', message);
@@ -43,14 +66,17 @@ function ContentScript() {
         const currentUrl = window.location.href;
         const hostname = new URL(currentUrl).hostname;
 
-        // Send a message to the background script
-        chrome.runtime.sendMessage({
+        // Send a message to the background script with error handling
+        safeSendMessage({
             action: 'SuspendWarning',
             domain: hostname,
             data: {...data, 
                 suspendStart: Date.now(),
                 suspendEnd: Date.now() + 5 * 60 * 1000
             }
+        }).catch((error) => {
+            console.warn('Failed to send suspend warning to background script:', error);
+            // The dismiss action still works even if message sending fails
         });
     }
 

@@ -1,5 +1,7 @@
 /* global chrome */
 
+console.log('Service worker starting up...');
+
 // Function to check if the URL is valid
 function isValidURL(url) {
     try {
@@ -213,11 +215,16 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 });
             }
         });
+
+        // Return true to indicate that the response will be sent asynchronously
+        return true;
     }
 });
 
 // Event listener for messages from the popup script to save data
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    console.log('Service worker received message:', request.action);
+    
     if (request.action === 'SAVE_SETTINGS' || request.action === 'SuspendWarning') {
         const { domain, data } = request;
 
@@ -236,6 +243,13 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 if (request.action === 'SAVE_SETTINGS') {
                     // Send the response indicating success or failure
                     chrome.runtime.sendMessage({ action: 'SaveDataResponse', success: success, message: `Settings for ${domain} saved successfully.` });
+                } else if (request.action === 'SuspendWarning') {
+                    console.log(`Warning suspended for ${domain} until ${new Date(data.suspendEnd)}`);
+                }
+                
+                // Send response to content script
+                if (sendResponse) {
+                    sendResponse({ success: success });
                 }
             });
         });
