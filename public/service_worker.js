@@ -1,5 +1,7 @@
 /* global chrome */
 
+console.log('Service worker starting up...');
+
 // Function to check if the URL is valid
 function isValidURL(url) {
     try {
@@ -51,17 +53,31 @@ function handleContentScriptInjection(tabId) {
                     // Inject the content script
                     chrome.scripting.executeScript({
                         target: { tabId: tabId },
-                        files: ["static/js/content.js"],
-                    })
-                        .then(() => {
-                            console.log("Script injected");
+                        func: () => !!window.__NOTIFY_ME_EXTENSION_INJECTED__,
+                    }).then((results) => {
+                        if (results && results[0] && results[0].result) {
                             // Send a message to the injected content script
                             chrome.tabs.sendMessage(tabId, {
                                 action: 'ShowAlert',
                                 data: filteredData,
                             });
-                        })
-                        .catch((err) => console.warn("Unexpected error", err));
+                        } else {
+                            // Inject the content script if not already injected
+                            chrome.scripting.executeScript({
+                                target: { tabId: tabId },
+                                files: ["static/js/content.js"],
+                            })
+                                .then(() => {
+                                    console.log("Script injected");
+                                    // Send a message to the injected content script
+                                    chrome.tabs.sendMessage(tabId, {
+                                        action: 'ShowAlert',
+                                        data: filteredData,
+                                    });
+                                })
+                                .catch((err) => console.warn("Unexpected error", err));
+                        }
+                    });
                 }
             })
             .catch((error) => {
@@ -199,11 +215,16 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 });
             }
         });
+
+        // Return true to indicate that the response will be sent asynchronously
+        return true;
     }
 });
 
 // Event listener for messages from the popup script to save data
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    console.log('Service worker received message:', request.action);
+    
     if (request.action === 'SAVE_SETTINGS' || request.action === 'SuspendWarning') {
         const { domain, data } = request;
 
@@ -222,6 +243,13 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 if (request.action === 'SAVE_SETTINGS') {
                     // Send the response indicating success or failure
                     chrome.runtime.sendMessage({ action: 'SaveDataResponse', success: success, message: `Settings for ${domain} saved successfully.` });
+                } else if (request.action === 'SuspendWarning') {
+                    console.log(`Warning suspended for ${domain} until ${new Date(data.suspendEnd)}`);
+                }
+                
+                // Send response to content script
+                if (sendResponse) {
+                    sendResponse({ success: success });
                 }
             });
         });
